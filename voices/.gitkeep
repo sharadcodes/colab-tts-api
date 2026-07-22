@@ -1,0 +1,10 @@
+# Drop reference audio clips in this folder.
+# Supported formats: .wav .mp3 .flac .ogg .m4a
+#
+# The filename (without extension) becomes the voice name.
+# Example:
+#   voices/narrator.wav   → voice name "narrator"
+#   voices/old_man.mp3    → voice name "old_man"
+#
+# Then use it from the GUI dropdown, CLI (--voice narrator),
+# or the API (voice=narrator form field).
