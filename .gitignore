@@ -1,0 +1,103 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+*.egg
+.eggs/
+build/
+dist/
+develop-eggs/
+downloads/
+eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.whl
+MANIFEST
+
+# Virtual environments
+venv/
+.venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# uv
+uv.lock
+
+# Models / weights (downloaded at runtime, don't commit)
+models/
+*.safetensors
+*.pt
+*.pth
+*.bin
+*.ckpt
+*.onnx
+
+# Reference audio uploaded to server
+voices/*
+!voices/.gitkeep
+
+# Cloudflared binary (downloaded at runtime)
+cloudflared
+
+# VibeVoice repo clone (downloaded at runtime)
+VibeVoice/
+
+# Generated audio output
+out/
+audio/
+audio_dia/
+out_c*/
+*.wav
+*.mp3
+*.flac
+*.ogg
+*.m4a
+!voices/.gitkeep
+
+# Input / transcript files (user content)
+input.txt
+trans.txt
+transcript.txt
+
+# IDE / editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Ruff / lint caches
+.ruff_cache/
+.mypy_cache/
+.pytype/
+.pytest_cache/
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Tunnel logs
+/tmp/cf_tunnel.log
+cf_tunnel.log
+
+# Secrets / env
+.env
+.env.local
+*.pem
+*.key
