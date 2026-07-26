@@ -6,6 +6,12 @@ Launched as: python -m uvicorn server:app --host 0.0.0.0 --port 8000
 Config via env vars:
   TTS_MODEL           : chatterbox | chatterbox_full | vibevoice | dia  (default: chatterbox)
   CHATTERBOX_VARIANT  : turbo | en | mtl                                (default: turbo)
+  CHATTERBOX_EXAGGERATION : float                              (default: 0.5)  (full/en/mtl)
+  CHATTERBOX_CFG_WEIGHT   : float                              (default: 0.5)  (full/en/mtl)
+  CHATTERBOX_TEMPERATURE  : float                              (default: 0.8)  (all)
+  CHATTERBOX_REPETITION_PENALTY : float                        (default: 1.2)  (all)
+  CHATTERBOX_MIN_P        : float                              (default: 0.05) (full/en/mtl)
+  CHATTERBOX_TOP_P        : float                              (default: 1.0)  (all)
   VIBEVOICE_STEPS     : int                                  (default: 20)
   DIA_CFG_SCALE       : float                                (default: 4.0)
   DIA_TEMPERATURE     : float                                (default: 1.8)
@@ -103,6 +109,21 @@ class ChatterboxFullBackend(ChatterboxBackend):
         self.model = ChatterboxTTS.from_pretrained(device="cuda")
         self.sr = self.model.sr
         print(f"Chatterbox full loaded (sr={self.sr})")
+
+    def synthesize(self, text, ref_audio_path=None, ref_text=None):
+        kwargs = {
+            "exaggeration": float(os.environ.get("CHATTERBOX_EXAGGERATION", "0.5")),
+            "cfg_weight": float(os.environ.get("CHATTERBOX_CFG_WEIGHT", "0.5")),
+            "temperature": float(os.environ.get("CHATTERBOX_TEMPERATURE", "0.8")),
+            "repetition_penalty": float(os.environ.get("CHATTERBOX_REPETITION_PENALTY", "1.2")),
+            "min_p": float(os.environ.get("CHATTERBOX_MIN_P", "0.05")),
+            "top_p": float(os.environ.get("CHATTERBOX_TOP_P", "1.0")),
+        }
+        if ref_audio_path:
+            kwargs["audio_prompt_path"] = ref_audio_path
+        wav = self.model.generate(text, **kwargs)
+        audio = wav.cpu().numpy().squeeze()
+        return _wav_bytes(audio, self.sr), self.sr
 
 
 # ──────────────────────────────────────────────

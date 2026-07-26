@@ -48,18 +48,24 @@ tunnel is up and the model is loaded (30–60s on first run).
 All env vars are optional. Defaults shown. Per-model vars only apply to the
 relevant launcher.
 
-| Var                   | Default              | Values                          |
-| --------------------- | -------------------- | ------------------------------- |
-| `CHATTERBOX_VARIANT`  | `turbo`              | `turbo`/`en`/`mtl`              |
-| `VIBEVOICE_STEPS`     | `20`                 | int (lower = faster)            |
-| `DIA_CFG_SCALE`       | `4.0`                | float                           |
-| `DIA_TEMPERATURE`     | `1.8`                | float                           |
-| `DIA_TOP_P`           | `0.90`               | float                           |
-| `PORT`                | `8000`               | int                             |
-| `HOST`                | `0.0.0.0`            | str                             |
-| `VENV_ROOT`           | `./venv`             | path (per-model envs live here) |
-| `VENV_DIR`            | `<root>/<model>`     | override per-model venv         |
-| `CUDA_TAG`            | `cu124`              | `cu118`/`cu124`/`cu126`         |
+| Var                             | Default              | Values                          |
+| ------------------------------- | -------------------- | ------------------------------- |
+| `CHATTERBOX_VARIANT`            | `turbo`              | `turbo`/`en`/`mtl`              |
+| `CHATTERBOX_EXAGGERATION`       | `0.5`                | float (full/en/mtl only)        |
+| `CHATTERBOX_CFG_WEIGHT`         | `0.5`                | float (full/en/mtl only)        |
+| `CHATTERBOX_TEMPERATURE`        | `0.8`                | float                           |
+| `CHATTERBOX_REPETITION_PENALTY` | `1.2`                | float                           |
+| `CHATTERBOX_MIN_P`              | `0.05`               | float (full/en/mtl only)        |
+| `CHATTERBOX_TOP_P`              | `1.0`                | float                           |
+| `VIBEVOICE_STEPS`               | `20`                 | int (lower = faster)            |
+| `DIA_CFG_SCALE`                 | `4.0`                | float                           |
+| `DIA_TEMPERATURE`               | `1.8`                | float                           |
+| `DIA_TOP_P`                     | `0.90`               | float                           |
+| `PORT`                          | `8000`               | int                             |
+| `HOST`                          | `0.0.0.0`            | str                             |
+| `VENV_ROOT`                     | `./venv`             | path (per-model envs live here) |
+| `VENV_DIR`                      | `<root>/<model>`     | override per-model venv         |
+| `CUDA_TAG`                      | `cu124`              | `cu118`/`cu124`/`cu126`         |
 
 ### Per-model venvs (swap-and-use)
 
