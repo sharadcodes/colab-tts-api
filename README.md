@@ -7,11 +7,12 @@ reinstalling or removing the others.
 
 ## Supported models
 
-| Model       | Size  | Launcher                | Notes                              |
-| ----------- | ----- | ----------------------- | ---------------------------------- |
-| chatterbox  | 350M  | `start_chatterbox.sh`   | Fast. Variants: `turbo`/`en`/`mtl` |
-| vibevoice   | 1.5B  | `start_vibevoice.sh`    | Expressive, voice cloning          |
-| dia         | 1.6B  | `start_dia.sh`          | English, needs `ref_text` to clone |
+| Model          | Size  | Launcher                   | Notes                              |
+| -------------- | ----- | -------------------------- | ---------------------------------- |
+| chatterbox     | 350M  | `start_chatterbox.sh`      | Fast. Variants: `turbo`/`en`/`mtl` |
+| chatterbox_full| 500M  | `start_chatterbox_full.sh` | Full-size English Chatterbox       |
+| vibevoice      | 1.5B  | `start_vibevoice.sh`       | Expressive, voice cloning          |
+| dia            | 1.6B  | `start_dia.sh`             | English, needs `ref_text` to clone |
 
 ## Requirements
 
@@ -25,6 +26,7 @@ Run the per-model script directly (preferred):
 
 ```bash
 ./start_chatterbox.sh
+./start_chatterbox_full.sh
 ./start_vibevoice.sh
 ./start_dia.sh
 ```
@@ -32,9 +34,10 @@ Run the per-model script directly (preferred):
 Or use the dispatcher (preserves the original `MODEL=...` interface):
 
 ```bash
-MODEL=chatterbox ./start.sh
-MODEL=vibevoice  ./start.sh
-MODEL=dia        ./start.sh
+MODEL=chatterbox      ./start.sh
+MODEL=chatterbox_full ./start.sh
+MODEL=vibevoice       ./start.sh
+MODEL=dia             ./start.sh
 ```
 
 Output prints a public URL like `https://<random>.trycloudflare.com` once the
@@ -64,6 +67,7 @@ Each model installs into its own venv under `VENV_ROOT/<model>/`:
 
 ```
 venv/chatterbox/
+venv/chatterbox_full/
 venv/vibevoice/
 venv/dia/
 ```
@@ -172,12 +176,13 @@ public URL into the notebook output.
 
 ```
 colab-tts-api/
-├── start.sh              # thin dispatcher (MODEL=... ./start.sh)
-├── start_chatterbox.sh   # chatterbox launcher (torch 2.6.0 trio + chatterbox-tts)
-├── start_vibevoice.sh    # vibevoice launcher (VibeVoice-1.5B from GitHub + HF)
-├── start_dia.sh          # dia launcher (Dia-1.6B from GitHub)
-├── common.sh             # shared helpers (venv, tunnel, server, banner)
-├── server.py             # FastAPI server with TTSBackend ABC + 3 backends
+├── start.sh                   # thin dispatcher (MODEL=... ./start.sh)
+├── start_chatterbox.sh        # chatterbox launcher (torch 2.6.0 trio + chatterbox-tts)
+├── start_chatterbox_full.sh   # full-size 500M English chatterbox launcher
+├── start_vibevoice.sh         # vibevoice launcher (VibeVoice-1.5B from GitHub + HF)
+├── start_dia.sh               # dia launcher (Dia-1.6B from GitHub)
+├── common.sh                  # shared helpers (venv, tunnel, server, banner)
+├── server.py             # FastAPI server with TTSBackend ABC + 4 backends
 ├── colab_tts_api.ipynb   # Colab launcher notebook
 ├── clients/
 │   ├── gui.py            # Tkinter GUI client
