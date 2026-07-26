@@ -4,8 +4,8 @@ Runs inside an isolated uv venv (created by start.sh).
 Launched as: python -m uvicorn server:app --host 0.0.0.0 --port 8000
 
 Config via env vars:
-  TTS_MODEL           : chatterbox | vibevoice | dia        (default: chatterbox)
-  CHATTERBOX_VARIANT  : turbo | en | mtl                    (default: turbo)
+  TTS_MODEL           : chatterbox | chatterbox_full | vibevoice | dia  (default: chatterbox)
+  CHATTERBOX_VARIANT  : turbo | en | mtl                                (default: turbo)
   VIBEVOICE_STEPS     : int                                  (default: 20)
   DIA_CFG_SCALE       : float                                (default: 4.0)
   DIA_TEMPERATURE     : float                                (default: 1.8)
@@ -90,6 +90,19 @@ class ChatterboxBackend(TTSBackend):
         wav = self.model.generate(text, **kwargs)
         audio = wav.cpu().numpy().squeeze()
         return _wav_bytes(audio, self.sr), self.sr
+
+
+class ChatterboxFullBackend(ChatterboxBackend):
+    """Full-size 500M English Chatterbox model."""
+
+    name = "chatterbox_full"
+
+    def load(self) -> None:
+        from chatterbox.tts import ChatterboxTTS
+
+        self.model = ChatterboxTTS.from_pretrained(device="cuda")
+        self.sr = self.model.sr
+        print(f"Chatterbox full loaded (sr={self.sr})")
 
 
 # ──────────────────────────────────────────────
@@ -187,6 +200,7 @@ class DiaBackend(TTSBackend):
 # ──────────────────────────────────────────────
 BACKENDS = {
     "chatterbox": ChatterboxBackend,
+    "chatterbox_full": ChatterboxFullBackend,
     "vibevoice": VibeVoiceBackend,
     "dia": DiaBackend,
 }
