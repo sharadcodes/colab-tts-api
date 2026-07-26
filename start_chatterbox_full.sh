@@ -9,10 +9,16 @@
 #   ./start_chatterbox_full.sh
 #
 # Env vars (all optional):
-#   PORT                : int                             (default: 8000)
-#   HOST                : str                             (default: 0.0.0.0)
-#   VENV_DIR            : path                            (default: ./venv/chatterbox_full)
-#   CUDA_TAG            : cu118 | cu124 | cu126           (default: cu124)
+#   CHATTERBOX_EXAGGERATION : float                       (default: 0.5)
+#   CHATTERBOX_CFG_WEIGHT   : float                       (default: 0.5)
+#   CHATTERBOX_TEMPERATURE  : float                       (default: 0.8)
+#   CHATTERBOX_REPETITION_PENALTY : float                 (default: 1.2)
+#   CHATTERBOX_MIN_P        : float                       (default: 0.05)
+#   CHATTERBOX_TOP_P        : float                       (default: 1.0)
+#   PORT                    : int                         (default: 8000)
+#   HOST                    : str                         (default: 0.0.0.0)
+#   VENV_DIR                : path                        (default: ./venv/chatterbox_full)
+#   CUDA_TAG                : cu118 | cu124 | cu126       (default: cu124)
 
 set -euo pipefail
 MODEL="chatterbox_full"
