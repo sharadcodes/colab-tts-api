@@ -92,6 +92,7 @@ First run for a model downloads deps + weights; subsequent runs skip both.
 
 | Method | Path                  | Purpose                          |
 | ------ | --------------------- | -------------------------------- |
+| `GET`  | `/`                   | Built-in dense test UI           |
 | `GET`  | `/health`             | Liveness + active model          |
 | `GET`  | `/models`             | Backend info                     |
 | `GET`  | `/voices`             | List server-side voice names     |
@@ -197,6 +198,7 @@ colab-tts-api/
 ├── start_breeze.sh            # breeze launcher (Breeze TTS 2 from GitHub + HF)
 ├── common.sh                  # shared helpers (venv, tunnel, server, banner)
 ├── server.py             # FastAPI server with TTSBackend ABC + 5 backends
+├── ui.html               # built-in test UI served at GET /
 ├── colab_tts_api.ipynb   # Colab launcher notebook
 ├── clients/
 │   ├── gui.py            # Tkinter GUI client

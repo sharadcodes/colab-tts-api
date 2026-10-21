@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>TTS API</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+*{box-sizing:border-box;margin:0}
+body{font:13px/1.4 ui-monospace,Consolas,monospace;background:#111;color:#ddd;padding:8px;max-width:1100px;margin:auto}
+h1{font-size:14px;margin-bottom:6px}
+.badge{background:#225;color:#adf;padding:1px 6px;border-radius:3px}
+fieldset{border:1px solid #333;padding:6px;margin:6px 0}
+legend{padding:0 4px;color:#9cf}
+label{color:#999;margin-right:4px}
+input,select,textarea,button{background:#1b1b1b;color:#ddd;border:1px solid #444;padding:3px 6px;font:inherit}
+textarea{width:100%;height:52px}
+button{cursor:pointer;background:#263}
+button:hover{background:#374}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:4px 0}
+.row>*{flex:0 1 auto}
+.grow{flex:1 1 160px}
+audio{width:100%;height:28px;margin-top:4px}
+.err{color:#f88;white-space:pre-wrap}
+.meta{color:#888}
+table{border-collapse:collapse}
+td,th{border:1px solid #333;padding:2px 8px}
+.hid{display:none}
+</style></head><body>
+<h1>TTS API <span class="badge" id="mModel">…</span> <span class="badge" id="mHealth">…</span> <span class="meta" id="mMeta"></span></h1>
+
+<fieldset><legend>Synthesize</legend>
+<div class="row">
+ <label>endpoint</label>
+ <select id="ep"><option value="/tts">/tts (form)</option><option value="/v1/audio/speech">/v1/audio/speech (openai)</option></select>
+ <label class="fmt hid">format</label><select class="fmt hid" id="fmt"><option>wav</option><option>mp3</option><option>flac</option><option>opus</option></select>
+</div>
+<textarea id="text" placeholder="Text to synthesize"></textarea>
+<div class="row">
+ <label>voice</label><select id="voice" class="grow"><option value="">(none / upload)</option></select>
+ <label>ref audio</label><input type="file" id="refAudio" accept="audio/*">
+</div>
+<div class="row" id="refTextRow">
+ <label>ref text<span id="reqStar" class="err"></span></label><input id="refText" class="grow" placeholder="transcript of reference audio">
+ <button id="go">Generate</button>
+</div>
+<div id="err" class="err"></div>
+<audio id="player" controls class="hid"></audio>
+<div class="meta" id="resMeta"></div>
+</fieldset>
+
+<fieldset><legend>Voices <button id="reload" style="float:right">↻</button></legend>
+<div class="row">
+ <input id="vName" placeholder="name"><input type="file" id="vAudio" accept="audio/*">
+ <input id="vRefText" class="grow" placeholder="transcript (needed by some models)">
+ <button id="vUp">Upload</button>
+</div>
+<div id="vList"></div>
+</fieldset>
+
+<script>
+const $=id=>document.getElementById(id);
+let needsRef=false;
+async function refresh(){
+  const [h,m,v]=await Promise.all([fetch('/health').then(r=>r.json()),fetch('/models').then(r=>r.json()),fetch('/voices').then(r=>r.json())]);
+  $('mModel').textContent=m.model||h.model;
+  $('mHealth').textContent=h.status;
+  needsRef=!!m.needs_ref_text;
+  $('mMeta').textContent='needs_ref_text: '+needsRef+(needsRef?' (ref_text required when cloning)':'');
+  $('reqStar').textContent=needsRef?' *':'';
+  const vs=v.voices||[];
+  $('voice').innerHTML='<option value="">(none / upload)</option>'+vs.map(x=>`<option>${x}</option>`).join('');
+  $('vList').innerHTML=vs.length?'<table>'+vs.map(x=>`<tr><td>${x}</td><td><a href="#" data-v="${x}" class="usev">use</a></td></tr>`).join('')+'</table>':'<span class="meta">no voices uploaded</span>';
+}
+$('ep').onchange=e=>{const o=e.target.value.includes('v1');document.querySelectorAll('.fmt').forEach(x=>x.classList.toggle('hid',!o));};
+$('vList').onclick=e=>{if(e.target.dataset.v){$('voice').value=e.target.dataset.v;e.preventDefault();}};
+$('reload').onclick=refresh;
+$('go').onclick=async()=>{
+  $('err').textContent='';$('resMeta').textContent='generating…';
+  try{
+    let res;
+    if($('ep').value==='/v1/audio/speech'){
+      res=await fetch('/v1/audio/speech',{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({model:'tts-1',input:$('text').value,voice:$('voice').value||'default',response_format:$('fmt').value})});
+    }else{
+      const fd=new FormData();
+      fd.append('text',$('text').value);
+      if($('voice').value)fd.append('voice',$('voice').value);
+      if($('refAudio').files[0])fd.append('ref_audio',$('refAudio').files[0]);
+      if($('refText').value)fd.append('ref_text',$('refText').value);
+      res=await fetch('/tts',{method:'POST',body:fd});
+    }
+    if(!res.ok){const j=await res.json().catch(()=>({}));throw new Error(res.status+' '+(j.error&&j.error.message||j.error||j.detail||res.statusText));}
+    const blob=await res.blob();
+    $('player').src=URL.createObjectURL(blob);$('player').classList.remove('hid');$('player').play().catch(()=>{});
+    $('resMeta').innerHTML=`ok — ${(blob.size/1024).toFixed(1)} KB | sr=${res.headers.get('X-Sample-Rate')||'?'} | <a href="${$('player').src}" download="tts.${$('ep').value==='/v1/audio/speech'?$('fmt').value:'wav'}">download</a>`;
+  }catch(e){$('err').textContent=String(e);$('resMeta').textContent='';}
+};
+$('vUp').onclick=async()=>{
+  $('err').textContent='';
+  if(!$('vName').value||!$('vAudio').files[0]){$('err').textContent='voice name + audio file required';return;}
+  const fd=new FormData();
+  fd.append('name',$('vName').value);fd.append('audio',$('vAudio').files[0]);
+  if($('vRefText').value)fd.append('ref_text',$('vRefText').value);
+  const r=await fetch('/voices/upload',{method:'POST',body:fd});
+  const j=await r.json().catch(()=>({}));
+  if(!r.ok){$('err').textContent=JSON.stringify(j);}else{$('vName').value=$('vRefText').value='';$('vAudio').value='';refresh();}
+};
+refresh();
+</script></body></html>
