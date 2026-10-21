@@ -36,7 +36,7 @@ import numpy as np
 import soundfile as sf
 import torch
 from fastapi import FastAPI, File, Form, UploadFile
-from fastapi.responses import JSONResponse, Response
+from fastapi.responses import FileResponse, JSONResponse, Response
 from pydantic import BaseModel, Field
 
 
@@ -366,6 +366,12 @@ def _load() -> None:
         print(f"Voices available: {', '.join(voices)}")
     else:
         print("No voices in voices/ dir — voice cloning via upload only.")
+
+
+@app.get("/", include_in_schema=False)
+async def ui():
+    """Built-in test UI — exercises every endpoint from one dense page."""
+    return FileResponse(Path(__file__).resolve().parent / "ui.html")
 
 
 @app.get("/health")
