@@ -40,6 +40,12 @@ install_common
 
 # ─── Breeze TTS 2 deps ────────────────────────
 echo "Installing Breeze TTS 2..."
+# qwen-tts audio tokenizer shells out to sox
+if ! command -v sox >/dev/null 2>&1; then
+  echo "Installing sox..."
+  apt-get install -y -qq sox libsox-fmt-all 2>/dev/null \
+    || (apt-get update -qq && apt-get install -y -qq sox libsox-fmt-all)
+fi
 if [ ! -d "$HERE/breeze-tts" ]; then
   git clone https://github.com/breezeblue-ai/breeze-tts.git "$HERE/breeze-tts"
 fi
