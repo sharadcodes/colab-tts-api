@@ -4,7 +4,7 @@ Runs inside an isolated uv venv (created by start.sh).
 Launched as: python -m uvicorn server:app --host 0.0.0.0 --port 8000
 
 Config via env vars:
-  TTS_MODEL           : chatterbox | chatterbox_full | vibevoice | dia  (default: chatterbox)
+  TTS_MODEL           : chatterbox | chatterbox_full | vibevoice | dia | breeze  (default: chatterbox)
   CHATTERBOX_VARIANT  : turbo | en | mtl                                (default: turbo)
   CHATTERBOX_EXAGGERATION : float                              (default: 0.5)  (full/en/mtl)
   CHATTERBOX_CFG_WEIGHT   : float                              (default: 0.5)  (full/en/mtl)
@@ -16,6 +16,10 @@ Config via env vars:
   DIA_CFG_SCALE       : float                                (default: 4.0)
   DIA_TEMPERATURE     : float                                (default: 1.8)
   DIA_TOP_P           : float                                (default: 0.90)
+  BREEZE_MODEL_PATH   : path                                 (default: /content/models/Breeze-TTS-2)
+  BREEZE_CFG_SCALE    : float                                (default: 1.0; ~4 with instruction)
+  BREEZE_INSTRUCTION  : str                                  (default: "")
+  BREEZE_SEED         : int                                  (default: 42)
 
 Add new backends by subclassing TTSBackend and registering in BACKENDS.
 """
@@ -217,6 +221,92 @@ class DiaBackend(TTSBackend):
 
 
 # ──────────────────────────────────────────────
+# Breeze TTS 2
+# ──────────────────────────────────────────────
+class BreezeBackend(TTSBackend):
+    """Breeze TTS 2 — bilingual EN/ZH, voice clone / design / direction.
+
+    Cloning requires ref_text (exact transcript of the reference audio).
+    Without ref audio it runs voice design; BREEZE_INSTRUCTION steers it.
+    """
+
+    name = "breeze"
+    needs_ref_text = True
+
+    def load(self) -> None:
+        from breeze_infer.runtime import (
+            load_runtime,
+            resolve_device,
+            update_generation_config_for_breeze,
+        )
+        from models.fast_streaming import (
+            FastBreezeStreamingRuntime,
+            FastStreamingConfig,
+        )
+
+        model_path = os.environ.get(
+            "BREEZE_MODEL_PATH", "/content/models/Breeze-TTS-2"
+        )
+        tokenizer, model, audio_tokenizer = load_runtime(
+            model_path, device=resolve_device(), attn_implementation="eager"
+        )
+        update_generation_config_for_breeze(model)
+        config = FastStreamingConfig(
+            max_new_tokens=1500, max_seq_len=2048, repetition_penalty=1.1
+        )
+        self.runtime = FastBreezeStreamingRuntime(
+            model, audio_tokenizer, config, tokenizer=tokenizer
+        )
+        self.tokenizer = tokenizer
+        self.model = model
+        self.audio_tokenizer = audio_tokenizer
+        self.sr = self.runtime.sample_rate
+        print(f"Breeze TTS 2 loaded (sr={self.sr})")
+
+    def synthesize(self, text, ref_audio_path=None, ref_text=None):
+        from breeze_infer.runtime import set_all_seeds
+        from breeze_infer.templates import (
+            get_template,
+            prepare_inputs,
+            select_template_name,
+        )
+
+        if ref_audio_path and not (ref_text and ref_text.strip()):
+            raise ValueError(
+                "Breeze requires ref_text (exact transcript of the reference audio)."
+            )
+
+        request = {"id": "api-request", "text": text, "speaker": "S0"}
+        instruction = os.environ.get("BREEZE_INSTRUCTION", "").strip()
+        if instruction:
+            request["instruction"] = instruction
+        if ref_audio_path:
+            request["ref_audio_path"] = ref_audio_path
+            request["ref_text"] = ref_text.strip()
+
+        seed = int(os.environ.get("BREEZE_SEED", "42"))
+        set_all_seeds(seed)
+        inputs = prepare_inputs(
+            self.tokenizer,
+            self.audio_tokenizer,
+            self.model,
+            [request],
+            get_template(select_template_name(request)),
+            guidance_scale=float(os.environ.get("BREEZE_CFG_SCALE", "1.0")),
+            guidance_scale_ref=None,
+            guidance_scale_ins=None,
+        )
+        chunks = [
+            chunk.audio
+            for chunk in self.runtime.iter_audio_chunks(
+                inputs, request_id="api-request", seed=seed
+            )
+        ]
+        audio = np.concatenate(chunks) if chunks else np.zeros(0, dtype=np.float32)
+        return _wav_bytes(audio, self.sr), self.sr
+
+
+# ──────────────────────────────────────────────
 # Registry — add new backends here
 # ──────────────────────────────────────────────
 BACKENDS = {
@@ -224,6 +314,7 @@ BACKENDS = {
     "chatterbox_full": ChatterboxFullBackend,
     "vibevoice": VibeVoiceBackend,
     "dia": DiaBackend,
+    "breeze": BreezeBackend,
 }
 
 

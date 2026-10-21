@@ -13,6 +13,7 @@ reinstalling or removing the others.
 | chatterbox_full| 500M  | `start_chatterbox_full.sh` | Full-size English Chatterbox       |
 | vibevoice      | 1.5B  | `start_vibevoice.sh`       | Expressive, voice cloning          |
 | dia            | 1.6B  | `start_dia.sh`             | English, needs `ref_text` to clone |
+| breeze         | ~2B   | `start_breeze.sh`          | EN/ZH, clone/design/direction, needs `ref_text` to clone |
 
 ## Requirements
 
@@ -29,6 +30,7 @@ Run the per-model script directly (preferred):
 ./start_chatterbox_full.sh
 ./start_vibevoice.sh
 ./start_dia.sh
+./start_breeze.sh
 ```
 
 Or use the dispatcher (preserves the original `MODEL=...` interface):
@@ -38,6 +40,7 @@ MODEL=chatterbox      ./start.sh
 MODEL=chatterbox_full ./start.sh
 MODEL=vibevoice       ./start.sh
 MODEL=dia             ./start.sh
+MODEL=breeze          ./start.sh
 ```
 
 Output prints a public URL like `https://<random>.trycloudflare.com` once the
@@ -61,6 +64,9 @@ relevant launcher.
 | `DIA_CFG_SCALE`                 | `4.0`                | float                           |
 | `DIA_TEMPERATURE`               | `1.8`                | float                           |
 | `DIA_TOP_P`                     | `0.90`               | float                           |
+| `BREEZE_CFG_SCALE`              | `1.0`                | float (use ~4 with instruction) |
+| `BREEZE_INSTRUCTION`            | `""`                 | voice design/direction prompt   |
+| `BREEZE_SEED`                   | `42`                 | int                             |
 | `PORT`                          | `8000`               | int                             |
 | `HOST`                          | `0.0.0.0`            | str                             |
 | `VENV_ROOT`                     | `./venv`             | path (per-model envs live here) |
@@ -76,6 +82,7 @@ venv/chatterbox/
 venv/chatterbox_full/
 venv/vibevoice/
 venv/dia/
+venv/breeze/
 ```
 
 Switching models reuses an already-installed env — no reinstall, no removal.
@@ -187,8 +194,9 @@ colab-tts-api/
 ├── start_chatterbox_full.sh   # full-size 500M English chatterbox launcher
 ├── start_vibevoice.sh         # vibevoice launcher (VibeVoice-1.5B from GitHub + HF)
 ├── start_dia.sh               # dia launcher (Dia-1.6B from GitHub)
+├── start_breeze.sh            # breeze launcher (Breeze TTS 2 from GitHub + HF)
 ├── common.sh                  # shared helpers (venv, tunnel, server, banner)
-├── server.py             # FastAPI server with TTSBackend ABC + 4 backends
+├── server.py             # FastAPI server with TTSBackend ABC + 5 backends
 ├── colab_tts_api.ipynb   # Colab launcher notebook
 ├── clients/
 │   ├── gui.py            # Tkinter GUI client

@@ -52,6 +52,9 @@ cloudflared
 # VibeVoice repo clone (downloaded at runtime)
 VibeVoice/
 
+# breeze-tts repo clone (downloaded at runtime)
+breeze-tts/
+
 # Generated audio output
 out/
 audio/
