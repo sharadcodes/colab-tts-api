@@ -244,8 +244,8 @@ class BreezeBackend(TTSBackend):
             FastStreamingConfig,
         )
 
-        model_path = os.environ.get(
-            "BREEZE_MODEL_PATH", "/content/models/Breeze-TTS-2"
+        model_path = Path(
+            os.environ.get("BREEZE_MODEL_PATH", "/content/models/Breeze-TTS-2")
         )
         tokenizer, model, audio_tokenizer = load_runtime(
             model_path, device=resolve_device(), attn_implementation="eager"
