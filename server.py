@@ -6,6 +6,8 @@ Launched as: python -m uvicorn server:app --host 0.0.0.0 --port 8000
 Config via env vars:
   TTS_MODEL           : chatterbox | chatterbox_full | vibevoice | dia | breeze  (default: chatterbox)
   CHATTERBOX_VARIANT  : turbo | en | mtl                                (default: turbo)
+  CHATTERBOX_LANGUAGE_ID : e.g. en | hi | fr | zh                       (mtl only, default: en)
+  CHATTERBOX_T3_MODEL : v3 | v2                                         (mtl only, default: v3)
   CHATTERBOX_EXAGGERATION : float                              (default: 0.5)  (full/en/mtl)
   CHATTERBOX_CFG_WEIGHT   : float                              (default: 0.5)  (full/en/mtl)
   CHATTERBOX_TEMPERATURE  : float                              (default: 0.8)  (all)
@@ -87,14 +89,19 @@ class ChatterboxBackend(TTSBackend):
         elif variant == "mtl":
             from chatterbox.mtl_tts import ChatterboxMultilingualTTS
 
-            self.model = ChatterboxMultilingualTTS.from_pretrained(device="cuda")
+            self.model = ChatterboxMultilingualTTS.from_pretrained(
+                device="cuda", t3_model=os.environ.get("CHATTERBOX_T3_MODEL", "v3")
+            )
         else:
             raise ValueError(f"Unknown chatterbox variant: {variant}")
+        self.variant = variant
         self.sr = self.model.sr
         print(f"Chatterbox loaded (variant={variant}, sr={self.sr})")
 
     def synthesize(self, text, ref_audio_path=None, ref_text=None):
         kwargs = {}
+        if self.variant == "mtl":
+            kwargs["language_id"] = os.environ.get("CHATTERBOX_LANGUAGE_ID", "en")
         if ref_audio_path:
             kwargs["audio_prompt_path"] = ref_audio_path
         wav = self.model.generate(text, **kwargs)

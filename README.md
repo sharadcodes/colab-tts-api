@@ -54,6 +54,8 @@ relevant launcher.
 | Var                             | Default              | Values                          |
 | ------------------------------- | -------------------- | ------------------------------- |
 | `CHATTERBOX_VARIANT`            | `turbo`              | `turbo`/`en`/`mtl`              |
+| `CHATTERBOX_LANGUAGE_ID`        | `en`                 | `hi`/`fr`/`zh`/… (mtl only)     |
+| `CHATTERBOX_T3_MODEL`           | `v3`                 | `v3`/`v2` (mtl only)            |
 | `CHATTERBOX_EXAGGERATION`       | `0.5`                | float (full/en/mtl only)        |
 | `CHATTERBOX_CFG_WEIGHT`         | `0.5`                | float (full/en/mtl only)        |
 | `CHATTERBOX_TEMPERATURE`        | `0.8`                | float                           |
